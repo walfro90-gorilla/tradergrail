@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# TraderGrail - AI Trading Platform
 
-First, run the development server:
+This is a Next.js application built with:
+- **Framework**: Next.js 14+ (App Router)
+- **UI**: Shadcn UI + Tailwind CSS
+- **Backend/Auth**: Supabase (configured for Google Auth)
+- **i18n**: next-intl (English & Spanish/MX)
+- **PWA**: Fully installable Progressive Web App
+
+## 🚀 Getting Started
+
+### 1. Environment Setup
+
+Create a `.env.local` file in the root directory:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_supabase_anon_key
+```
+
+### 2. Installation
+
+```bash
+npm install
+```
+
+### 3. Running Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🌍 Internationalization
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app supports English (`/en`) and Mexican Spanish (`/es-mx`).
+- Default route `/` redirects based on browser settings.
+- Edit translations in `messages/en.json` and `messages/es-mx.json`.
 
-## Learn More
+## 📱 PWA Support
 
-To learn more about Next.js, take a look at the following resources:
+The app is configured as a PWA. The service worker is generated during `npm run build`.
+Manifest file is located at `public/manifest.json`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔐 Authentication
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Configured for Supabase Auth with Google Provider.
+Ensure you have enabled Google Provider in your Supabase Dashboard and added the redirect URL:
+`https://your-domain.com/auth/callback` (or `http://localhost:3000/auth/callback` for dev).
 
-## Deploy on Vercel
+## 🧠 Brain Logic
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [BRAIN.md](BRAIN.md) for the architectural deep dive and future implementation roadmap for the AI components.

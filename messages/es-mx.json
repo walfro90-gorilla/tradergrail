@@ -1,0 +1,13 @@
+{
+    "Index": {
+        "title": "TraderGrail",
+        "description": "Plataforma de Trading con IA Avanzada"
+    },
+    "Auth": {
+        "loginWithGoogle": "Iniciar sesión con Google"
+    },
+    "Dashboard": {
+        "welcome": "Bienvenido a tu Cerebro de Trading",
+        "logout": "Cerrar sesión"
+    }
+}

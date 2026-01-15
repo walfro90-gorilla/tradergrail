@@ -1,0 +1,13 @@
+{
+    "Index": {
+        "title": "TraderGrail",
+        "description": "Advanced AI Trading Platform"
+    },
+    "Auth": {
+        "loginWithGoogle": "Sign in with Google"
+    },
+    "Dashboard": {
+        "welcome": "Welcome to your Trading Brain",
+        "logout": "Sign out"
+    }
+}
