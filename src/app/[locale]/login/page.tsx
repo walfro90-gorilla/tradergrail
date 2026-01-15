@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Globe } from 'lucide-react'
 
+import { useLocale } from 'next-intl'
+
 export default function LoginPage() {
+    const locale = useLocale()
     const handleGoogleLogin = async () => {
         const supabase = createClient()
         await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${location.origin}/auth/callback`,
+                redirectTo: `${location.origin}/${locale}/auth/callback`,
             },
         })
     }

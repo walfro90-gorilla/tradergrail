@@ -19,9 +19,12 @@ export async function updateSession(request: NextRequest, response?: NextRespons
                     cookiesToSet.forEach(({ name, value, options }) =>
                         request.cookies.set(name, value)
                     )
-                    supabaseResponse = NextResponse.next({
-                        request,
-                    })
+                    // If we don't have a response yet, create one
+                    if (!response) {
+                        supabaseResponse = NextResponse.next({
+                            request,
+                        })
+                    }
                     cookiesToSet.forEach(({ name, value, options }) =>
                         supabaseResponse.cookies.set(name, value, options)
                     )
@@ -38,12 +41,20 @@ export async function updateSession(request: NextRequest, response?: NextRespons
         data: { user },
     } = await supabase.auth.getUser()
 
+    if (user && request.nextUrl.pathname.includes('/login')) {
+        const url = request.nextUrl.clone()
+        url.pathname = `/${request.nextUrl.pathname.split('/')[1]}/dashboard`
+        return NextResponse.redirect(url)
+    }
+
     if (
         !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth')
+        !request.nextUrl.pathname.includes('/login') &&
+        !request.nextUrl.pathname.includes('/auth') &&
+        request.nextUrl.pathname !== '/' &&
+        !request.nextUrl.pathname.match(/\/(en|es-mx)$/)
     ) {
-        // no user, potentially redirect to login
+        // Optional: Redirect to login if trying to access protected routes without a session
         // const url = request.nextUrl.clone()
         // url.pathname = '/login'
         // return NextResponse.redirect(url)

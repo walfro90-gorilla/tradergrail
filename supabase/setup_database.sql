@@ -111,6 +111,25 @@ begin
 end;
 $$;
 
+-- 6. AI ANALYSIS TABLE (Gemini Results Cache)
+create table public.ai_analysis (
+    id uuid default uuid_generate_v4() primary key,
+    user_id uuid references public.users not null,
+    symbol text not null,
+    price_at_analysis numeric not null,
+    sentiment text not null check (sentiment in ('bullish', 'bearish', 'neutral')),
+    confidence numeric check (confidence >= 0 and confidence <= 100),
+    summary text not null,
+    reasoning text[],
+    sources text[],
+    metadata jsonb,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.ai_analysis enable row level security;
+create policy "Users can view own AI analysis" on public.ai_analysis for select using (auth.uid() = user_id);
+create policy "Users can insert own AI analysis" on public.ai_analysis for insert with check (auth.uid() = user_id);
+
 -- 7. ENABLE REALTIME
 -- Note: Run these in the SQL Editor to enable Realtime replication
 alter publication supabase_realtime add table public.notifications;
