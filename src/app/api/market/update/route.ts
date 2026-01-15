@@ -6,10 +6,16 @@ export async function POST(request: NextRequest) {
     try {
         const supabase = await createClient()
 
-        // Verificar autenticación
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        // Security check: User session OR Secret Key in Authorization header
+        const authHeader = request.headers.get('authorization')
+        const cronSecret = process.env.CRON_SECRET
+        const isCronAuthorized = cronSecret && authHeader === `Bearer ${cronSecret}`
+
+        if (!isCronAuthorized) {
+            const { data: { user }, error: authError } = await supabase.auth.getUser()
+            if (authError || !user) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            }
         }
 
         // Obtener símbolos activos

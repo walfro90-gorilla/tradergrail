@@ -25,6 +25,7 @@ import LocaleSwitcher from '@/components/LocaleSwitcher'
 import { createClient } from '@/utils/supabase/client'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
+import { Link } from '@/i18n/routing'
 import MarketDataUpdater from '@/components/dashboard/MarketDataUpdater'
 
 interface ServiceStatus {
@@ -107,12 +108,16 @@ export default function SettingsPage() {
                     T
                 </div>
                 <nav className="flex flex-col gap-6">
-                    <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white">
-                        <TrendingUp />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white">
-                        <Activity />
-                    </Button>
+                    <Link href="/dashboard">
+                        <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white">
+                            <TrendingUp />
+                        </Button>
+                    </Link>
+                    <Link href="/trading">
+                        <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white">
+                            <Activity />
+                        </Button>
+                    </Link>
                     <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white">
                         <History />
                     </Button>

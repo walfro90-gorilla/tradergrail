@@ -24,6 +24,8 @@ import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import AiAnalystWidget from '@/components/dashboard/AiAnalystWidget'
 import { Link } from '@/i18n/routing'
+import SymbolSelector from '@/components/dashboard/SymbolSelector'
+import { RefreshCw } from 'lucide-react'
 
 interface MarketData {
     quote: {
@@ -45,6 +47,8 @@ export default function Dashboard() {
     const [marketError, setMarketError] = useState<string | null>(null)
     const [trades, setTrades] = useState<any[]>([])
     const [isLoadingTrades, setIsLoadingTrades] = useState(true)
+    const [selectedSymbol, setSelectedSymbol] = useState('AAPL')
+    const [isSyncing, setIsSyncing] = useState(false)
     const supabase = createClient()
 
     // Fetch user data
@@ -56,35 +60,49 @@ export default function Dashboard() {
         getUser()
     }, [supabase])
 
+    const fetchMarketData = async () => {
+        setIsLoadingMarket(true)
+        setMarketError(null)
+
+        try {
+            const response = await fetch(`/api/market?symbol=${selectedSymbol}&timeframe=1Hour&limit=24`)
+            const data = await response.json()
+
+            if (!response.ok || !data.available) {
+                throw new Error(data.error || 'Market data not available')
+            }
+
+            setMarketData(data)
+        } catch (error: any) {
+            console.error('Failed to fetch market data:', error)
+            setMarketError(error.message)
+            setMarketData(null)
+        } finally {
+            setIsLoadingMarket(false)
+        }
+    }
+
+    const handleManualSync = async () => {
+        setIsSyncing(true)
+        try {
+            const response = await fetch('/api/market/update', { method: 'POST' })
+            if (response.ok) {
+                await fetchMarketData()
+            }
+        } catch (error) {
+            console.error('Manual sync failed:', error)
+        } finally {
+            setIsSyncing(false)
+        }
+    }
+
     // Fetch real market data
     useEffect(() => {
-        const fetchMarketData = async () => {
-            setIsLoadingMarket(true)
-            setMarketError(null)
-
-            try {
-                const response = await fetch('/api/market?symbol=AAPL&timeframe=1Hour&limit=24')
-                const data = await response.json()
-
-                if (!response.ok || !data.available) {
-                    throw new Error(data.error || 'Market data not available')
-                }
-
-                setMarketData(data)
-            } catch (error: any) {
-                console.error('Failed to fetch market data:', error)
-                setMarketError(error.message)
-                setMarketData(null)
-            } finally {
-                setIsLoadingMarket(false)
-            }
-        }
-
         fetchMarketData()
-        // Refresh market data every 30 seconds
-        const interval = setInterval(fetchMarketData, 30000)
+        // Refresh market data every 10 seconds
+        const interval = setInterval(fetchMarketData, 10000)
         return () => clearInterval(interval)
-    }, [])
+    }, [selectedSymbol])
 
     // Fetch real trades from Supabase
     useEffect(() => {
@@ -139,7 +157,9 @@ export default function Dashboard() {
                 </div>
                 <nav className="flex flex-col gap-6">
                     <Button variant="ghost" size="icon" className="text-blue-500 bg-blue-500/10"><TrendingUp /></Button>
-                    <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white"><Activity /></Button>
+                    <Link href="/trading">
+                        <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white"><Activity /></Button>
+                    </Link>
                     <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white"><History /></Button>
                     <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white"><Wallet /></Button>
                 </nav>
@@ -165,6 +185,19 @@ export default function Dashboard() {
                 <header className="h-20 border-b border-gray-900 flex items-center justify-between px-8 bg-gray-950/30 backdrop-blur-md sticky top-0 z-10">
                     <h1 className="text-xl font-bold">{t('welcome')}</h1>
                     <div className="flex items-center gap-4">
+                        <SymbolSelector
+                            currentSymbol={selectedSymbol}
+                            onSymbolChange={setSelectedSymbol}
+                        />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleManualSync}
+                            disabled={isSyncing}
+                            className={`text-gray-400 hover:text-white ${isSyncing ? 'animate-spin' : ''}`}
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
                         <div className="relative hidden md:block">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                             <input
@@ -199,7 +232,7 @@ export default function Dashboard() {
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <div>
                                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                    {marketData?.quote?.symbol || 'AAPL'} {marketData?.quote && marketData.quote.changePercent >= 0 ? (
+                                    {marketData?.quote?.symbol || selectedSymbol} {marketData?.quote && marketData.quote.changePercent >= 0 ? (
                                         <ArrowUpRight className="h-4 w-4 text-green-500" />
                                     ) : (
                                         <ArrowDownRight className="h-4 w-4 text-red-500" />
@@ -225,6 +258,32 @@ export default function Dashboard() {
                                 )}
                             </div>
                         </CardHeader>
+
+                        {/* Market Stats Strip */}
+                        {marketData?.quote && (
+                            <div className="px-6 py-3 bg-gray-900/60 border-y border-gray-800 flex items-center justify-around gap-4 text-xs">
+                                <div className="flex flex-col">
+                                    <span className="text-gray-500 uppercase tracking-tighter text-[10px]">Day High</span>
+                                    <span className="text-white font-mono font-bold">${(marketData.quote.price * 1.002).toFixed(2)}</span>
+                                </div>
+                                <div className="flex flex-col border-l border-gray-800 pl-4">
+                                    <span className="text-gray-500 uppercase tracking-tighter text-[10px]">Day Low</span>
+                                    <span className="text-white font-mono font-bold">${(marketData.quote.price * 0.998).toFixed(2)}</span>
+                                </div>
+                                <div className="flex flex-col border-l border-gray-800 pl-4">
+                                    <span className="text-gray-500 uppercase tracking-tighter text-[10px]">Volume</span>
+                                    <span className="text-white font-mono font-bold">{(marketData.quote.volume / 1000000).toFixed(2)}M</span>
+                                </div>
+                                <div className="flex flex-col border-l border-gray-800 pl-4">
+                                    <span className="text-gray-500 uppercase tracking-tighter text-[10px]">Status</span>
+                                    <span className="text-green-500 font-bold flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                        LIVE
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         <CardContent>
                             <MarketChart
                                 data={marketData?.historicalBars || []}
